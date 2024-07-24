@@ -24,9 +24,6 @@ jobs:
         with:
           hugo-version: '0.110.0'
 
-      - name: Build
-        run: hugo --minify
-
       - name: Deploy
         uses: peaceiris/actions-gh-pages@v4
         # If you're changing the branch from main,
