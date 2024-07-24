@@ -1,4 +1,4 @@
-import React, {useState, useEffect} from 'react';
+import React, {useState, useEffect, useMemo} from 'react';
 
 const kommuneList = [
     'Oslo',
@@ -362,23 +362,23 @@ const kommuneList = [
 ];
 
 const App = () => {
-    const [words] = useState(kommuneList);
     const [searchTerm, setSearchTerm] = useState('');
     const [checkedWords, setCheckedWords] = useState({});
     const [isLoading, setIsLoading] = useState(true);
+    const [showOnlyChecked, setShowOnlyChecked] = useState(false);
 
     useEffect(() => {
         const savedCheckedWords = localStorage.getItem('checkedWords');
         let newCheckedWords = savedCheckedWords ? JSON.parse(savedCheckedWords) : {};
 
-        words.forEach(word => {
+        kommuneList.forEach(word => {
             if (!(word in newCheckedWords)) {
                 newCheckedWords[word] = false;
             }
         });
         setCheckedWords(newCheckedWords);
         setIsLoading(false);
-    }, [words]);
+    }, []);
 
     const handleSearch = (event) => {
         setSearchTerm(event.target.value.toLowerCase());
@@ -395,52 +395,62 @@ const App = () => {
         alert('Checked words saved successfully!');
     };
 
-    const filteredWords = words.filter(word =>
-        word.toLowerCase().includes(searchTerm.toLowerCase())
-    );
+    const toggleShowChecked = () => {
+        setShowOnlyChecked(!showOnlyChecked);
+    };
+
+    const filteredWords = useMemo(() => {
+        const lowercaseSearchTerm = searchTerm.toLowerCase();
+        return [...new Set(kommuneList.filter(word => {
+            const matchesSearch = word.toLowerCase().includes(lowercaseSearchTerm);
+            const isChecked = checkedWords[word];
+            return matchesSearch && (!showOnlyChecked || isChecked);
+        }))];
+    }, [searchTerm, checkedWords, showOnlyChecked]);
 
     const checkedCount = Object.values(checkedWords).filter(Boolean).length;
 
     return (
-        <div style={{padding: '1rem', maxWidth: '400px', margin: '0 auto'}}>
-            <div style={{marginBottom: '1rem'}}>
+        <div style={{ padding: '1rem', maxWidth: '400px', margin: '0 auto' }}>
+            <div style={{ marginBottom: '1rem' }}>
                 <input
                     type="text"
                     placeholder="Search words..."
                     onChange={handleSearch}
                     value={searchTerm}
-                    style={{marginBottom: '0.5rem', width: '100%', padding: '0.5rem'}}
+                    style={{ marginBottom: '0.5rem', width: '100%', padding: '0.5rem' }}
                 />
-                <p style={{fontSize: '0.875rem', color: '#666', marginBottom: '0.5rem'}}>
-                    Checked: {checkedCount}/{words.length}
+                <p style={{ fontSize: '0.875rem', color: '#666', marginBottom: '0.5rem' }}>
+                    Checked: {checkedCount}/{kommuneList.length}
                 </p>
-                <button
-                    onClick={handleSaveChecked}
-                    style={{
-                        width: '100%',
-                        padding: '0.5rem',
-                        backgroundColor: '#4CAF50',
-                        color: 'white',
-                        border: 'none',
-                        cursor: 'pointer'
-                    }}
-                >
-                    Save Checked Words
-                </button>
+                <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '0.5rem' }}>
+                    <button
+                        onClick={handleSaveChecked}
+                        style={{ flex: 1, padding: '0.5rem', backgroundColor: '#4CAF50', color: 'white', border: 'none', cursor: 'pointer' }}
+                    >
+                        Save Checked Words
+                    </button>
+                    <button
+                        onClick={toggleShowChecked}
+                        style={{ flex: 1, padding: '0.5rem', backgroundColor: showOnlyChecked ? '#f44336' : '#2196F3', color: 'white', border: 'none', cursor: 'pointer' }}
+                    >
+                        {showOnlyChecked ? 'Show All' : 'Show Checked Only'}
+                    </button>
+                </div>
             </div>
             {isLoading ? (
                 <div>Loading words...</div>
             ) : (
-                <div style={{maxHeight: '60vh', overflowY: 'auto'}}>
-                    <ul style={{listStyleType: 'none', padding: 0}}>
+                <div style={{ maxHeight: '60vh', overflowY: 'auto' }}>
+                    <ul style={{ listStyleType: 'none', padding: 0 }}>
                         {filteredWords.map(word => (
-                            <li key={word} style={{display: 'flex', alignItems: 'center', marginBottom: '0.5rem'}}>
+                            <li key={word} style={{ display: 'flex', alignItems: 'center', marginBottom: '0.5rem' }}>
                                 <input
                                     type="checkbox"
                                     id={word}
                                     checked={checkedWords[word] || false}
                                     onChange={() => handleCheckboxChange(word)}
-                                    style={{marginRight: '0.5rem'}}
+                                    style={{ marginRight: '0.5rem' }}
                                 />
                                 <label
                                     htmlFor={word}
@@ -459,5 +469,4 @@ const App = () => {
         </div>
     );
 };
-
 export default App;
