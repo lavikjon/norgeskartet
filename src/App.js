@@ -358,14 +358,13 @@ const kommuneList = [
     'Båtsfjord',
     'Vardø',
     'Nesseby',
-    'Rennesøy',
 ];
 
 const App = () => {
     const [searchTerm, setSearchTerm] = useState('');
     const [checkedWords, setCheckedWords] = useState({});
     const [isLoading, setIsLoading] = useState(true);
-    const [showOnlyChecked, setShowOnlyChecked] = useState(false);
+    const [showOnlyUnchecked, setShowOnlyUnchecked] = useState(false);
 
     useEffect(() => {
         const savedCheckedWords = localStorage.getItem('checkedWords');
@@ -395,27 +394,28 @@ const App = () => {
         alert('Checked words saved successfully!');
     };
 
-    const toggleShowChecked = () => {
-        setShowOnlyChecked(!showOnlyChecked);
+    const toggleShowUnchecked = () => {
+        setShowOnlyUnchecked(!showOnlyUnchecked);
     };
 
     const filteredWords = useMemo(() => {
         const lowercaseSearchTerm = searchTerm.toLowerCase();
         return [...new Set(kommuneList.filter(word => {
             const matchesSearch = word.toLowerCase().includes(lowercaseSearchTerm);
-            const isChecked = checkedWords[word];
-            return matchesSearch && (!showOnlyChecked || isChecked);
+            const isChecked = !checkedWords[word];
+            return matchesSearch && (!showOnlyUnchecked || isChecked);
         }))];
-    }, [searchTerm, checkedWords, showOnlyChecked]);
+    }, [searchTerm, checkedWords, showOnlyUnchecked]);
 
     const checkedCount = Object.values(checkedWords).filter(Boolean).length;
 
     return (
         <div style={{ padding: '1rem', maxWidth: '400px', margin: '0 auto' }}>
+            <h1 style={{ fontSize: '1.5rem', marginBottom: '1rem', fontFamily: 'cursive' }}>Norgeskartet med Tamanna Agnihotri!</h1>
             <div style={{ marginBottom: '1rem' }}>
                 <input
                     type="text"
-                    placeholder="Search words..."
+                    placeholder="Search kommuner..."
                     onChange={handleSearch}
                     value={searchTerm}
                     style={{ marginBottom: '0.5rem', width: '100%', padding: '0.5rem' }}
@@ -428,18 +428,18 @@ const App = () => {
                         onClick={handleSaveChecked}
                         style={{ flex: 1, padding: '0.5rem', backgroundColor: '#4CAF50', color: 'white', border: 'none', cursor: 'pointer' }}
                     >
-                        Save Checked Words
+                        Save Checked Kommuner
                     </button>
                     <button
-                        onClick={toggleShowChecked}
-                        style={{ flex: 1, padding: '0.5rem', backgroundColor: showOnlyChecked ? '#f44336' : '#2196F3', color: 'white', border: 'none', cursor: 'pointer' }}
+                        onClick={toggleShowUnchecked}
+                        style={{ flex: 1, padding: '0.5rem', backgroundColor: showOnlyUnchecked ? '#f44336' : '#2196F3', color: 'white', border: 'none', cursor: 'pointer' }}
                     >
-                        {showOnlyChecked ? 'Show All' : 'Show Checked Only'}
+                        {showOnlyUnchecked ? 'Show All' : 'Show Unchecked Only'}
                     </button>
                 </div>
             </div>
             {isLoading ? (
-                <div>Loading words...</div>
+                <div>Loading kommuner...</div>
             ) : (
                 <div style={{ maxHeight: '60vh', overflowY: 'auto' }}>
                     <ul style={{ listStyleType: 'none', padding: 0 }}>
